@@ -1,0 +1,249 @@
+<?php
+
+/**
+ *
+ * Clé secrète d'échange entre propagez et le site
+ *
+ *
+ */
+define('PROPAGEZ_SECRET','VOTRE_CLE_SECRETE');
+
+/**
+ *
+ * Classe d'api
+ *
+ * Cette classe défini les méthodes appelées par le web service. Elle
+ * agit en tant que pont entre les appels fait via le web service et les
+ * modèles de données du site.
+ *
+ * Chaque méthode reçoit un ou des paramètres d'entrés provenant de la requête
+ * et doit retourner l'information demandée sous forme de string, integer ou array.
+ *
+ * Si une erreur se produit, la méthode doit retourner une Exception.
+ *
+ *
+ */
+class Propagez_Server_Api {
+	
+	/**
+	 *
+	 * Création d'un événement
+	 *
+	 * Cette méthode reçoit un array événement (voir plus haut) en entré et doit
+	 * retourner le nouvel événement.
+	 *
+	 * L'événement retourné doit OBLIGATOIREMENT contenir un champ 'id' contenant
+	 * l'identifiant unique de l'événement dans la base de donnée du site.
+	 *
+	 */
+	public function create($data) {
+		
+		//Ajoutez le code permettant de créer un nouvel événement
+		//....
+		//....
+		
+		return $response;
+	}
+	
+	/**
+	 *
+	 * Mise à jour d'un événement
+	 *
+	 * Cette méthode reçoit un identifiant d'événement et un array événement modifié (voir plus haut).
+	 *
+	 * Elle doit retourner le nouvel événement mis à jour.  
+	 *
+	 */
+	public function update($id,$data) {
+		
+		//Ajoutez le code permettant de mettre à jour un événement selon l'identifiant fourni
+		//....
+		//....
+		
+		return $response;
+	}
+	
+	/**
+	 *
+	 * Obtenir un événement
+	 *
+	 * Cette méthode reçoit un identifiant d'événement en entré et doit
+	 * retourner l'événement correspondant.  
+	 *
+	 */
+	public function get($id) {
+		
+		//Ajoutez le code permettant de retrouver un événement selon l'identifiant fourni
+		//....
+		//....
+		
+		return $response;
+	}
+	
+	
+	/**
+	 *
+	 * Méthode  pour supprimer un événement
+	 *
+	 * Cette méthode reçoit un identifiant d'événement en entré et doit
+	 * supprimer l'événement corresponsant.
+	 *
+	 */
+	public function delete($id) {
+		
+		//Ajoutez le code permettant de supprimer un événement selon l'identifiant fourni
+		//....
+		//....
+		
+		return true;
+	}
+	
+	
+	
+}
+
+/**
+ *
+ * Classe pour le serveur
+ *
+ * Cette classe défini la logique de base du web service
+ *
+ *
+ */
+class Propagez_Server {
+	
+	public static $api;
+	public static $response;
+	
+	public static $config = array(
+		'secret' => PROPAGEZ_SECRET,
+		'input_namespace' => 'propagez_api'
+	);
+	
+	public static function init($api = null) {
+		
+		self::$api = isset($api) ? $api:new Propagez_Server_Api();
+		
+	}
+	
+	public static function handleRequest($url = null) {
+		
+		if(is_array($url)) {
+			$inputs = $url;
+		} else {
+			if(strpos($url, '?') !== false) {
+				$query = substr($url,strpos($url, '?')+1);
+			} elseif(strpos($url, '&') !== false) {
+				$query = $url;
+			} else {
+				throw new Exception('Aucune requête');
+			}
+			
+			$parts = explode('&',$query);
+			$inputs = array();
+			foreach($parts as $part) {
+				$part = explode('=',$part);
+				$inputs[$part[0]] = isset($part[1]) ? $part[1]:null;
+			}
+		}
+		
+		$methodName = self::$config['input_namespace'].'_method';
+		$idName = self::$config['input_namespace'].'_id';
+		$dataName = self::$config['input_namespace'].'_data';
+		$signatureName = self::$config['input_namespace'].'_signature';
+		
+		if(!isset($inputs[$methodName])) throw new Exception('Requête incomplète');
+		$method = $inputs[$methodName];
+		if(!method_exists(self::$api,$method)) throw new Exception('Requête incomplète');
+		
+		if(!isset($inputs[$signatureName])) throw new Exception('Vous devez fournir une signature');
+		if(!self::verifySignature($inputs[$signatureName],$inputs)) throw new Exception('Signature invalide');
+		
+		switch($method) {
+			
+			case 'add':
+				if(!isset($inputs[$dataName])) throw new Exception('Vous devez envoyer des données');
+				$data = is_array($inputs[$dataName]) ? $inputs[$dataName]:json_decode($inputs[$dataName],true);
+				$response = self::$api->$method($data);
+			break;
+			
+			case 'update':
+				if(!isset($inputs[$idName])) throw new Exception('Vous devez fournir un ID');
+				if(!isset($inputs[$dataName])) throw new Exception('Vous devez envoyer des données');
+				$data = is_array($inputs[$dataName]) ? $inputs[$dataName]:json_decode($inputs[$dataName],true);
+				$response = self::$api->$method($inputs[$idName],$data);
+			break;
+			
+			case 'get':
+			case 'delete':
+				if(!isset($inputs[$idName])) throw new Exception('Vous devez fournir un ID');
+				$response = self::$api->$method($inputs[$idName]);
+			break;
+		}
+		
+		self::$response = array(
+			'success' => true,
+			'response' => $response
+		);
+		
+		
+	}
+	
+	public static function verifySignature($signature,$inputs) {
+		
+		$methodName = self::$config['input_namespace'].'_method';
+		$idName = self::$config['input_namespace'].'_id';
+		$dataName = self::$config['input_namespace'].'_data';
+		
+		$parts = array();
+		if(isset($inputs[$methodName])) $parts[] = $methodName.'='.rawurlencode($inputs[$methodName]);
+		if(isset($inputs[$idName])) $parts[] = $idName.'='.rawurlencode($inputs[$idName]);
+		if(isset($inputs[$dataName])) $parts[] = $dataName.'='.rawurlencode($inputs[$dataName]);
+		
+		if($signature != md5(self::$config['secret'].'&'.implode('&',$parts))) return false;
+		
+		return true;
+		
+	}
+	
+	public static function sendResponse() {
+		
+		self::response(self::$response);
+		
+	}
+	
+	public static function response($data) {
+		
+		header('Content-type: text/plain; charset="utf-8"');
+		echo json_encode($data);
+		exit();
+		
+	}
+	
+	public static function error($e) {
+		
+		self::response(array(
+			'success' => false,
+			'error' => is_a($e,'Exception') ? $e->getMessage():$e
+		));
+		
+	}
+	
+	
+	
+}
+
+/**
+ *
+ * Exécution du web service
+ *
+ */
+try {
+	
+	Propagez_Server::init();
+	Propagez_Server::handleRequest($_REQUEST);
+	Propagez_Server::sendResponse();
+	
+} catch(Exception $e) {
+	Propagez_Server::error($e);
+}
