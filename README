@@ -10,7 +10,7 @@ get: Obtenir un événement
 supprimer: Supprimer un événement
 
 
-Liste des champs d'un événement:
+Voici la liste des champs d'un événement:
  
  * id		: Identifiant unique de l'événement
  * title	: Titre de l'événement
