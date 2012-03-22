@@ -1,12 +1,37 @@
 <?php
-
-class PropagezApi implements Propagez_PushServer_Interface {
+/*
+ *
+ *
+ * Classe d'api
+ *
+ * Cette classe est celle que vous devez modifier pour faire le pont entre
+ * les données envoyées par propagez et votre base de données. Cette classe
+ * doit implémenter l'interface Propagez_Server_Interface.
+ *
+ * Chaque méthode reçoit un ou des paramètres d'entrés provenant de la requête
+ * et doit retourner l'information demandée.
+ *
+ * Si une erreur se produit, la méthode doit retourner une Exception.
+ *
+ *
+ */
+class PropagezApi implements Propagez_Server_Interface {
 	
 	//Votre clé secrète 
 	public $secret = 'VOTRE_CLE_SECRETE';
 	
 	//Mode débogage, ne vérifie pas la signature
 	public $debug = true;
+	
+	/**
+	 *
+	 * Vous pouvez utiliser le constructeur pour intialiser une connexion
+	 * à votre base de données.
+	 *
+	 */
+	public function __construct() {
+		
+	}
 	
 	/**
 	 *
@@ -94,33 +119,35 @@ class PropagezApi implements Propagez_PushServer_Interface {
  * Vous devez fournir une instance de votre classe api comme argument
  *
  */
-Propagez_PushServer::run(new PropagezApi());
+Propagez_Server::run(new PropagezApi());
 
 
-/* --------------------------------------------------------- */
-/* --------------------------------------------------------- */
-/*
+
+
+
+/* ---------------------------------------------------------
  *
  *
- * Classe d'api
+ * Vous ne devez pas modifier le code ci-dessous
  *
- * Cette classe défini les méthodes appelées par le web service. Elle
- * agit en tant que pont entre les actions faites sur propagez et la
- * base de données du site.
  *
- * Chaque méthode reçoit un ou des paramètres d'entrés provenant de la requête
- * et doit retourner l'information demandée.
+ * ---------------------------------------------------------
+ */
+
+/**
  *
- * Si une erreur se produit, la méthode doit retourner une Exception.
+ * Interface du web service
  *
+ * Votre classe d'api doit implémenter cette interface
  *
  */
-interface Propagez_PushServer_Interface {
+interface Propagez_Server_Interface {
 	
     public function add($data);
     public function update($id,$data);
 	public function get($id);
 	public function delete($id);
+	
 }
 
 
@@ -132,7 +159,7 @@ interface Propagez_PushServer_Interface {
  *
  *
  */
-class Propagez_PushServer {
+class Propagez_Server {
 	
 	public static $api;
 	public static $response;
@@ -161,8 +188,12 @@ class Propagez_PushServer {
 	
 	public static function init($api) {
 		
-		if(!$api instanceof Propagez_PushServer_Interface) {
+		if(!$api instanceof Propagez_Server_Interface) {
 			throw new Exception('Vous devez utiliser l\'interface');
+		}
+		
+		if(!isset($api->secret) || empty($api->secret)) {
+			throw new Exception('Vous devez fournir une clé secrète');
 		}
 		
 		self::$api = $api;
@@ -200,7 +231,7 @@ class Propagez_PushServer {
 		$method = $inputs[$methodName];
 		if(!method_exists(self::$api,$method)) throw new Exception('Requête incomplète');
 		
-		if(!self::$api->debug) {
+		if(isset(self::$api->debug) && !self::$api->debug) {
 			if(!isset($inputs[$signatureName])) throw new Exception('Vous devez fournir une signature');
 			if(!self::verifySignature($inputs[$signatureName],$inputs)) throw new Exception('Signature invalide');
 		}
