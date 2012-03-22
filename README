@@ -1,6 +1,15 @@
 
+Installer l'api
+Vous devez copier le fichier api.php dans un dossier accessible de l'extérieur. 
+Dans le fichier api.php, vous devez modifier la classe PropagezApi pour implémenter
+les méthodes suivantes :
+add			: Créer un événement
+update		: Modifier un événement
+get			: Obtenir un événement
+supprimer	: Supprimer un événement
 
- Liste des champs d'un événement:
+
+Liste des champs d'un événement:
  
  * id		: Identifiant unique de l'événement
  * title	: Titre de l'événement
