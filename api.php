@@ -15,27 +15,6 @@
  * expliquant l'erreur.
  *
  *
- * Liste des champs d'un événement:
- *
- * id		: Identifiant unique de l'événement
- * title	: Titre de l'événement
- * description : Description de l'événement
- * date		: Date de l'événement (AAAA-MM-JJ)
- * time		: Heure de l'événement (HH:MM)
- * aid		: Identifiant unique de l'artiste
- * artist	: Nom de l'artiste
- * genres[]	: Array de styles musicaux
- * bio		: Bio de l'artiste
- * website	: Site web de l'artiste
- * vid		: Identifiant unique de la salle
- * venue	: Nom de la salle
- * address	: Adresse
- * city		: Ville
- * postalcode : Code Postal
- * lat		: Latitude
- * lng		: Longitude
- *
- *
  */
 class PropagezApi implements Propagez_Server_Interface {
 	
@@ -59,7 +38,7 @@ class PropagezApi implements Propagez_Server_Interface {
 	 *
 	 * Création d'un événement
 	 *
-	 * Cette méthode reçoit un array événement (voir plus haut) en entré et doit
+	 * Cette méthode reçoit un array événement (voir README) en entré et doit
 	 * retourner le nouvel événement.
 	 *
 	 * L'événement retourné doit OBLIGATOIREMENT contenir un champ 'id' contenant
@@ -79,7 +58,7 @@ class PropagezApi implements Propagez_Server_Interface {
 	 *
 	 * Mise à jour d'un événement
 	 *
-	 * Cette méthode reçoit un identifiant d'événement et un array événement modifié (voir plus haut).
+	 * Cette méthode reçoit un identifiant d'événement et un array événement modifié (voir README).
 	 *
 	 * Elle doit retourner le nouvel événement mis à jour.  
 	 *
@@ -129,6 +108,26 @@ class PropagezApi implements Propagez_Server_Interface {
 	}
 	
 	
+	/**
+	 *
+	 * Méthode  pour vérifier un doublon
+	 *
+	 * Cette méthode sera appelée avant la création d'un nouvel événement.
+	 * Elle reçoit un array événement (voir README) et le site doit vérifier
+	 * selon ces propres moyens si l'événement est un doublon et retourner true
+	 * si c'est le cas. Cette méthode peut être ignorée en retournant false
+	 *
+	 */
+	public function isDuplicate($data) {
+		
+		//Ajoutez le code permettant de vérifier le doublon
+		//....
+		//....
+		
+		return false;
+	}
+	
+	
 	
 }
 
@@ -169,6 +168,7 @@ interface Propagez_Server_Interface {
     public function update($id,$data);
 	public function get($id);
 	public function delete($id);
+	public function isDuplicate($data);
 	
 }
 
@@ -245,32 +245,31 @@ class Propagez_Server {
 		}
 		
 		$methodName = self::$config['input_namespace'].'_method';
+		$signatureName = self::$config['input_namespace'].'_signature';
 		$idName = self::$config['input_namespace'].'_id';
 		$dataName = self::$config['input_namespace'].'_data';
-		$signatureName = self::$config['input_namespace'].'_signature';
 		
 		if(!isset($inputs[$methodName])) throw new Exception('Requête incomplète');
 		$method = $inputs[$methodName];
-		if(!method_exists(self::$api,$method)) throw new Exception('Requête incomplète');
+		if(!method_exists(self::$api,$method)) throw new Exception('Méthode inconnue');
 		
 		if(isset(self::$api->debug) && !self::$api->debug) {
 			if(!isset($inputs[$signatureName])) throw new Exception('Vous devez fournir une signature');
 			if(!self::verifySignature($inputs[$signatureName],$inputs)) throw new Exception('Signature invalide');
 		}
 		
+		
 		switch($method) {
 			
 			case 'add':
 				if(!isset($inputs[$dataName])) throw new Exception('Aucune donnée');
-				$data = is_array($inputs[$dataName]) ? $inputs[$dataName]:json_decode($inputs[$dataName],true);
-				$response = self::$api->$method($data);
+				$response = self::$api->$method(self::decodeData($inputs[$dataName]));
 			break;
 			
 			case 'update':
 				if(!isset($inputs[$idName])) throw new Exception('Aucun ID');
 				if(!isset($inputs[$dataName])) throw new Exception('Aucune donnée');
-				$data = is_array($inputs[$dataName]) ? $inputs[$dataName]:json_decode($inputs[$dataName],true);
-				$response = self::$api->$method($inputs[$idName],$data);
+				$response = self::$api->$method($inputs[$idName], self::decodeData($inputs[$dataName]));
 			break;
 			
 			case 'get':
@@ -279,12 +278,17 @@ class Propagez_Server {
 				$response = self::$api->$method($inputs[$idName]);
 			break;
 			
+			case 'isDuplicate':
+				if(!isset($inputs[$dataName])) throw new Exception('Aucune donnée');
+				$response = self::$api->$method(self::decodeData($inputs[$dataName]));
+			break;
+			
 			default:
 				throw new Exception('Méthode inconnue');
 			break;
 		}
 		
-		if(!$response) throw new Exception('Aucune réponse');
+		self::validateResponse($method,$response);
 		
 		self::$response = array(
 			'success' => true,
@@ -292,6 +296,27 @@ class Propagez_Server {
 		);
 		
 		
+	}
+	
+	public static function validateResponse($method,$response) {
+		
+		if(!isset($response)) throw new Exception('Aucune réponse');
+		
+		switch($method) {
+			case 'add':
+			case 'update':
+			case 'get':
+				if(!is_array($response)) throw new Exception('Vous devez retourner un événement');
+				if(!isset($response['id'])) throw new Exception('L\'événement doit contenir un champ id');
+			break;
+			
+			case 'delete':
+			case 'isDuplicate':
+				if($response !== true && $response !== false) throw new Exception('Vous devez retourner true ou false');
+			break;
+		}
+		
+		return true;
 	}
 	
 	public static function verifySignature($signature,$inputs) {
@@ -332,6 +357,12 @@ class Propagez_Server {
 			'error' => is_a($e,'Exception') ? $e->getMessage():$e
 		));
 		
+	}
+	
+	
+	
+	public static function decodeData($data) {
+		return is_array($inputs[$dataName]) ? $inputs[$dataName]:json_decode($inputs[$dataName],true);
 	}
 	
 	

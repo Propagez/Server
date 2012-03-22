@@ -1,31 +1,34 @@
 
-Installer l'api
-Vous devez copier le fichier api.php dans un dossier accessible de l'extérieur. 
-Dans le fichier api.php, vous devez modifier la classe PropagezApi pour implémenter
+Installation
+
+- Copier le fichier api.php dans un dossier accessible de l'extérieur. 
+- Modifier la classe PropagezApi, dans le fichier api.php, pour implémenter
 les méthodes suivantes :
 
-add: Créer un événement
-update: Modifier un événement
-get: Obtenir un événement
-supprimer: Supprimer un événement
+add(data) 			: Créer un événement
+update(id,data) 	: Modifier un événement
+get(id) 			: Obtenir un événement
+supprimer(id)		: Supprimer un événement
+isDuplicate(data)	: Permet de vérifier si l'événement existe
 
 
 Voici la liste des champs d'un événement:
  
- * id		: Identifiant unique de l'événement
- * title	: Titre de l'événement
- * description : Description de l'événement
- * date		: Date de l'événement (AAAA-MM-JJ)
- * time		: Heure de l'événement (HH:MM)
- * aid		: Identifiant unique de l'artiste
- * artist	: Nom de l'artiste
- * genres[]	: Array de styles musicaux
- * bio		: Bio de l'artiste
- * website	: Site web de l'artiste
- * vid		: Identifiant unique de la salle
- * venue	: Nom de la salle
- * address	: Adresse
- * city		: Ville
- * postalcode : Code Postal
- * lat		: Latitude
- * lng		: Longitude
+* id		: Identifiant unique de l'événement
+* title	: Titre de l'événement
+* summary 	: Description courte de l'événement
+* description : Description longue de l'événement
+* date		: Date de l'événement (AAAA-MM-JJ)
+* time		: Heure de l'événement (HH:MM)
+* aid		: Identifiant unique de l'artiste
+* artist	: Nom de l'artiste
+* genres[]	: Array de styles musicaux
+* bio		: Bio de l'artiste
+* website	: Site web de l'artiste
+* vid		: Identifiant unique de la salle
+* venue	: Nom de la salle
+* address	: Adresse
+* city		: Ville
+* postalcode : Code Postal
+* lat		: Latitude
+* lng		: Longitude
