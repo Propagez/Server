@@ -1,6 +1,6 @@
 Installation
 
-- Copier le fichier api.php dans un dossier accessible de l'extérieur. 
+- Copier les fichier api.php et PropagezServer.php dans un dossier accessible de l'extérieur. 
 - Modifier la classe PropagezApi, dans le fichier api.php, pour implémenter
 les méthodes suivantes :
 
