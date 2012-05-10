@@ -42,7 +42,7 @@ Voici la liste des champs d'un événement:
     * photo: URL de la photo de l'artiste
     ...
 * venue: Objet artiste
-    * vid: Identifiant unique de la salle
+    * id: Identifiant unique de la salle
     * name: Nom de la salle
     * address: Adresse
     * city: Ville
