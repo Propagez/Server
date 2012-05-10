@@ -23,18 +23,33 @@ Voici la liste des champs d'un événement:
 * mature: indique si le spectacle est pour 18 ans et + (0 ou 1)
 * price: prix des billets
 * free: indique si le spectacle est gratuit (0 ou 1)
-* ticket_url: Adresse pour l'achat de billets
+* ticket_url: URL pour l'achat de billets
+* photo: URL de la photo de l'événement
 * artist: Objet artiste
     * id: Identifiant unique de l'artiste
     * name: Nom de l'artiste
     * description: Bio de l'artiste
     * website: Site web de l'artiste
     * genres[]: Array de styles musicaux
-    * photo: Adresse de la photo de l'artiste
-* vid: Identifiant unique de la salle
-* venue: Nom de la salle
-* address: Adresse
-* city: Ville
-* postalcode: Code Postal
-* lat: Latitude
-* lng: Longitude
+    * photo: URL de la photo de l'artiste
+* artists[]: Array d'artistes invités
+    * type: Type d'artiste invité
+    * id: Identifiant unique de l'artiste
+    * name: Nom de l'artiste
+    * description: Bio de l'artiste
+    * website: Site web de l'artiste
+    * genres[]: Array de styles musicaux
+    * photo: URL de la photo de l'artiste
+    ...
+* venue: Objet artiste
+    * vid: Identifiant unique de la salle
+    * name: Nom de la salle
+    * address: Adresse
+    * city: Ville
+    * postalcode: Code Postal
+    * region: Région ou Province
+    * country: Code du pays (ex: CA)
+    * lat: Latitude
+    * lng: Longitude
+    * exterior: indique si la scène est extérieure
+    * photo: URL de la photo de la salle
