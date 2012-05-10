@@ -20,11 +20,17 @@ Voici la liste des champs d'un événement:
 * category : Catégorie de l'événement
 * date: Date de l'événement (AAAA-MM-JJ)
 * time: Heure de l'événement (HH:MM)
-* aid: Identifiant unique de l'artiste
-* artist: Nom de l'artiste
-* genres[]: Array de styles musicaux
-* bio: Bio de l'artiste
-* website: Site web de l'artiste
+* mature: indique si le spectacle est pour 18 ans et + (0 ou 1)
+* price: prix des billets
+* free: indique si le spectacle est gratuit (0 ou 1)
+* ticket_url: Adresse pour l'achat de billets
+* artist: Objet artiste
+    * id: Identifiant unique de l'artiste
+    * name: Nom de l'artiste
+    * description: Bio de l'artiste
+    * website: Site web de l'artiste
+    * genres[]: Array de styles musicaux
+    * photo: Adresse de la photo de l'artiste
 * vid: Identifiant unique de la salle
 * venue: Nom de la salle
 * address: Adresse
